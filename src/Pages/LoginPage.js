@@ -17,16 +17,13 @@ function LoginPage(props) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log("INSIDE USE EFFECT OF LOGIN PAGE");
         if (props.isUserLoggedIn) {
-            console.log("NAVIGATE TO FEED FROM LOGIN PAGE");
-            navigate("/");
+            navigate(props.redirectUrl ? props.redirectUrl : "/" );
         }
     }, [props])
 
 
     const postAuthenticationRequest = async (user) => {
-        console.log(JSON.stringify(user));
         const response = await fetch(`${BACKEND_URL}/auth/authenticate`, {
             method: 'POST',
             headers: {
@@ -36,7 +33,6 @@ function LoginPage(props) {
 
             mode: 'cors',
         });
-        console.log("RESPONSE IS ", response);
         const data = await response.json();
         sessionStorage.setItem('JWT_TOKEN', data.token);
         return data.token;
@@ -67,8 +63,6 @@ function LoginPage(props) {
             password
         };
 
-        console.log("USER OBJ ", user);
-
         //After login - I need to fetch the user
         postAuthenticationRequest(user).then(() => props.handleAuthentication(true)
         ).catch(() => props.handleAuthentication(false));
@@ -77,7 +71,7 @@ function LoginPage(props) {
     return (
         <Container>
             <Row className='row-login-form m-3'>
-                <Card>
+                <Card className='shadow'>
                     <Card.Title className='text-center m-3'>Welcome to the Discussion Platform. Please Login</Card.Title>
                     <Form className='login-form p-3' onSubmit={handleLoginSubmit}>
                         <Form.Group className="mb-3" controlId="formBasicEmail">

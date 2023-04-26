@@ -1,29 +1,31 @@
+import { useState } from "react";
+import { updateUser } from "../Utils";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
-import { useState, useEffect } from 'react';
-import { BACKEND_URL } from '../backendConfig';
-import { useNavigate } from "react-router-dom";
-import './SignUpPage.css'; 
+import Alert from 'react-bootstrap/Alert';
+import Toast from 'react-bootstrap/Toast';
+import ToastContainer from "react-bootstrap/ToastContainer";
 
-export const SignUpPage = (props) => {
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [description, setDesc] = useState('');
-    const [interests, setInterests] = useState(null);
-    const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
 
-    const navigate = useNavigate();
+export const MyProfile = ({ user, handleProfileUpdate, categories }) => {
+    const [firstName, setFirstName] = useState(user ? user.firstName : '');
+    const [lastName, setLastName] = useState(user ? user.lastName : '');
+    const [email, setEmail] = useState(user ? user.email : '');
+    const [description, setDesc] = useState(user ? user.description : '');
+    const [interests, setInterests] = useState(user ? user.interests : []);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState(user ? user.interests.map(i => i.categoryId) : []);
+    const [showErrAlert, setShowErrAlert] = useState(false);
+    const [showInfoAlert, setShowInfoAlert] = useState(false);
+    const [errMsg, setErrMsg] = useState(null);
 
-    useEffect(() => {
-        if (props.isUserLoggedIn) {
-            navigate("/");
-        }
-    }, [props]);
+
+    const onSuccessfulEdit = (user) => {
+        handleProfileUpdate(user);
+        setShowInfoAlert(true);
+    }
 
     const handleFirstNameChange = (event) => {
         setFirstName(event.target.value);
@@ -37,9 +39,9 @@ export const SignUpPage = (props) => {
         setEmail(event.target.value);
     }
 
-    const handlePasswordChange = (event) => {
-        setPassword(event.target.value);
-    }
+    // const handlePasswordChange = (event) => {
+    //     setPassword(event.target.value);
+    // }
 
     const handleDescChange = (event) => {
         setDesc(event.target.value);
@@ -47,50 +49,35 @@ export const SignUpPage = (props) => {
 
     const handleCategorySelectionChange = (event) => {
         const categoryIds = Array.from(event.target.selectedOptions, (option) => (option.value));
-        setInterests(categoryIds.map((categoryId)=> ({categoryId: categoryId})));
+        setInterests(categoryIds.map((categoryId) => ({ categoryId: categoryId })));
         setSelectedCategoryIds(categoryIds);
     }
 
-    const handleSignupSubmit = (event) => {
+    const handleUpdateSubmit = (event) => {
         event.preventDefault();
 
-        const newUserObj = {
+        const updateUserObj = {
             firstName,
             lastName,
             email,
-            password,
             description,
             interests
         };
 
-        postSignupReq(newUserObj).then(() => {
-            props.handleAuthentication(true)
-        }).catch(() => props.handleAuthentication(false));
-    }
-
-    const postSignupReq = async (user) => {
-        const response = await fetch(`${BACKEND_URL}/auth/register`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(user),
-            mode: 'cors',
+        updateUser(user.userId, updateUserObj).then(onSuccessfulEdit).catch(err => {
+            setShowErrAlert(true);
+            setErrMsg(err);
         });
-        console.log("RESPONSE IS ", response);
-        const data = await response.json();
-        sessionStorage.setItem('JWT_TOKEN', data.token);
-        return data.token;
     }
 
-    const categoryOptions = props.categories ? props.categories.map((category) => <option key={category.categoryId} value={category.categoryId}>{category.category}</option>) : null;
+    const categoryOptions = categories ? categories.map((category) => <option key={category.categoryId} value={category.categoryId}>{category.category}</option>) : null;
 
     return (
         <Container>
             <Row className='row-signup-form m-3'>
-                <Card className='shadow'>
-                    <Card.Title className='text-center m-3'>Welcome to the Discussion Platform. Please Sign Up</Card.Title>
-                    <Form className='signup-form p-3' onSubmit={handleSignupSubmit}>
+                <Card>
+                    <Card.Title className='text-center m-3'>Update your Profile</Card.Title>
+                    <Form className='signup-form p-3' onSubmit={handleUpdateSubmit}>
                         <Form.Group className="mb-3" controlId="firstName">
                             <Form.Label>First Name</Form.Label>
                             <Form.Control type="text" placeholder="Enter First Name" onChange={handleFirstNameChange} value={firstName} />
@@ -103,24 +90,33 @@ export const SignUpPage = (props) => {
                             <Form.Label>Email address</Form.Label>
                             <Form.Control type="email" placeholder="Enter email" onChange={handleEmailChange} value={email} />
                         </Form.Group>
-                        <Form.Group className="mb-3" controlId="formBasicPassword">
+                        {/* <Form.Group className="mb-3" controlId="formBasicPassword">
                             <Form.Label>Password</Form.Label>
                             <Form.Control type="password" placeholder="Password" onChange={handlePasswordChange} value={password} />
-                        </Form.Group>
+                        </Form.Group> */}
 
                         <Form.Group className="mb-3" controlId="description">
                             <Form.Label>Desribe yourself</Form.Label>
                             <Form.Control type="m" placeholder="Enter a description" onChange={handleDescChange} value={description} />
                         </Form.Group>
                         <Form.Group className='mb-3'>
-                        <Form.Label>What are your interests?</Form.Label>
+                            <Form.Label>What are your interests?</Form.Label>
                             <Form.Select multiple value={selectedCategoryIds} onChange={handleCategorySelectionChange}>
                                 ${categoryOptions}
                             </Form.Select>
                         </Form.Group>
+                        {showErrAlert && <Alert variant="danger" onClose={() => setShowErrAlert(false)} dismissible>
+                            <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
+                            <p>
+                                {errMsg}
+                            </p>
+                        </Alert>}
+                        {showInfoAlert && <ToastContainer position="middle-center"><Toast bg="info" onClose={() => setShowInfoAlert(false)} show={showInfoAlert} delay={1500} autohide>
+                            <Toast.Body>Woohoo, you're profile has been updated!</Toast.Body>
+                        </Toast></ToastContainer>}
                         <Row>
                             <Button className='btn-signup' variant="primary" type="submit">
-                                Sign Up
+                                Update Profile
                             </Button>
                         </Row>
                     </Form>
@@ -130,4 +126,4 @@ export const SignUpPage = (props) => {
     )
 }
 
-export default SignUpPage;
+export default MyProfile;

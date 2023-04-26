@@ -29,8 +29,12 @@
 }
 
 .my-nav {
-  justify-content: space-between;
+  justify-content: center;
   width: 100%;
+}
+
+.my-nav > button {
+  margin: 1rem 1rem;
 }
 
 @keyframes App-logo-spin {

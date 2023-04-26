@@ -1,0 +1,53 @@
+@import './ColorScheme.scss';
+
+body {
+    font-family: "Roboto Slab", "Times New Roman", serif
+}
+
+.dark-bg {
+    background-color: $dark;
+}
+
+.light-bg {
+    background-color: $light;
+}
+
+.card-bg {
+    background-color: $light;
+}
+
+.card > * {
+    color: $dark-txt-color;
+}
+
+.btn-dark-text {
+    color: $dark;
+}
+
+.dark-txt-color {
+    color : $dark-txt-color;
+}
+
+.light-txt-color {
+    color : $light-txt-color;
+}
+
+.btn-hover-light:hover {
+    background-color: #DAD5D2;
+}
+
+.btn-hover-dark:hover{
+    background-color :#3e4d73;
+}
+
+.modal-content > * {
+    color: $dark-txt-color;
+}
+
+.profile-tabs button {
+    color : $light-txt-color;
+}
+
+.profile-tabs button:hover {
+    color : $light-txt-color;
+}
