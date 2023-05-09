@@ -51,7 +51,7 @@ export const CommentModal = ({ show, onHide, answer, user,handleAddComment }) =>
                 </p>
             </Alert>}
             <Modal.Footer>
-                <Button variant="success" onClick={handleCommentSubmit}>Submit</Button>
+                <Button variant="success" onClick={handleCommentSubmit} disabled={inputComment.length === 0}>Submit</Button>
                 <Button variant="danger" onClick={onHide}>Close</Button>
             </Modal.Footer>
         </Modal>

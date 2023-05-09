@@ -4,10 +4,10 @@ import { Button, Container } from 'react-bootstrap';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from 'react';
-import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import LoginPage from './Pages/LoginPage';
 import FeedPage from './Pages/FeedPage';
-import { fetchUserBasedOnJWT, fetchJWT, removeJWT, fetchCategories, fetchFeed } from './Utils';
+import { fetchUserBasedOnJWT, fetchJWT, removeJWT, fetchCategories } from './Utils';
 import SignUpPage from './Pages/SignUpPage';
 import QuestionPage from './Pages/QuestionPage';
 import AnswerPage from './Pages/AnswerPage';
@@ -32,7 +32,6 @@ function App() {
   const [showNewCategoryModal, setShowCategoryModal] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   /**
    * User opens the app. Do we already have the userLoggedIn
@@ -58,11 +57,7 @@ function App() {
           setLoggedInUser(user);
           setIsUserLoggedIn(true);
           if (user.role === 'ADMIN') {
-            console.log("SETTING USER TO ADMIN");
             setIsUserAdmin(true);
-          }
-          else {
-            console.log("NOT SETTING USER TO ADMIN");
           }
         }).catch(() => {
           setIsUserLoggedIn(false);
@@ -112,7 +107,10 @@ function App() {
     if (isSuccesfulLogin) {
       fetchUserBasedOnJWT(fetchJWT()).then((user) => {
         setLoggedInUser(user);
-        setIsUserLoggedIn(true)
+        setIsUserLoggedIn(true);
+        if (user.role === 'ADMIN') {
+          setIsUserAdmin(true);
+        }
       }).catch(() => {
         setIsUserLoggedIn(false);
         setLoggedInUser(null);
@@ -151,23 +149,31 @@ function App() {
     setShowCategoryModal(true);
   }
 
+  const handleSuccessfulCategoryAdd = (nC) => {
+    setCategories(prevCategories => [...prevCategories, nC])
+  }
+
   return (
     <div className='dark-bg vh-100 overflow-auto'>
-      {showNewCategoryModal && (<CategoryModal show={showNewCategoryModal} onHide={() => setShowCategoryModal(false)} />)}
-        <Navbar className='light-bg' expand="lg">
-          <Container>
-            <Link className='text-decoration-none fw-bolder dark-txt-color fs-2 me-2' to={'/'}>Forum</Link>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav"> 
-              <Nav className="my-nav">
-                {/* {(isUserLoggedIn) && <Button variant='light' onClick={handleNewQuestionClick}> New Question</Button>} */}
-                {(isUserLoggedIn) && <Button className='dark-txt-color light-bg btn-hover-light' onClick={handleMyProfileClick}> My Profile</Button>}
-                {(isUserLoggedIn && isUserAdmin) && <Button className='dark-txt-color light-bg btn-hover-light' onClick={handleNewCategoryClick}> Add New Category</Button>}
+      {showNewCategoryModal && (<CategoryModal show={showNewCategoryModal} onHide={() => setShowCategoryModal(false)} handleSuccessfulCategoryAdd={handleSuccessfulCategoryAdd} />)}
+      <Navbar className='light-bg' expand="lg">
+        <Container>
+          <Link className='text-decoration-none fw-bolder dark-txt-color fs-2 me-2' to={'/'}>Forum</Link>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="my-nav">
+              <div className='d-flex justify-content-start'>
+                {(isUserLoggedIn) && <Button className='dark-txt-color light-bg btn-hover-light me-1' onClick={handleMyProfileClick}> My Profile</Button>}
+                {(isUserLoggedIn && isUserAdmin) && <Button className='dark-txt-color light-bg btn-hover-light' onClick={handleNewCategoryClick}> New Category</Button>}
+              </div>
+               <div className='flex-grow-1 text-center dark-txt-color fs-4'>Welcome to Forum {(isUserLoggedIn) && `~ ${loggedInUser.firstName} ${loggedInUser.lastName}`}</div>
+              <div className='d-flex justify-content-end'>
                 {isUserLoggedIn && <Button className='dark-txt-color light-bg btn-hover-light ' onClick={handleLogoutBtn}>LOGOUT</Button>}
-              </Nav>
-            </Navbar.Collapse>
-          </Container>
-        </Navbar>
+              </div>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
       <Routes>
         <Route exact path={"/"} element={
           <FeedPage isUserLoggedIn={isUserLoggedIn} user={loggedInUser} setRedirectUrl={setRedirectUrl} categories={categories}

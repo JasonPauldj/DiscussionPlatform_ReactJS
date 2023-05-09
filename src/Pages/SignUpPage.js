@@ -3,10 +3,11 @@ import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
+import Alert from "react-bootstrap/Alert";
 import { useState, useEffect } from 'react';
 import { BACKEND_URL } from '../backendConfig';
 import { useNavigate } from "react-router-dom";
-import './SignUpPage.css'; 
+import './SignUpPage.css';
 
 export const SignUpPage = (props) => {
     const [firstName, setFirstName] = useState('');
@@ -16,6 +17,8 @@ export const SignUpPage = (props) => {
     const [description, setDesc] = useState('');
     const [interests, setInterests] = useState(null);
     const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+    const [errMsg, setErrMsg] = useState(null);
+    const [showErrAlert, setShowErrAlert] = useState(false);
 
     const navigate = useNavigate();
 
@@ -47,7 +50,7 @@ export const SignUpPage = (props) => {
 
     const handleCategorySelectionChange = (event) => {
         const categoryIds = Array.from(event.target.selectedOptions, (option) => (option.value));
-        setInterests(categoryIds.map((categoryId)=> ({categoryId: categoryId})));
+        setInterests(categoryIds.map((categoryId) => ({ categoryId: categoryId })));
         setSelectedCategoryIds(categoryIds);
     }
 
@@ -65,7 +68,11 @@ export const SignUpPage = (props) => {
 
         postSignupReq(newUserObj).then(() => {
             props.handleAuthentication(true)
-        }).catch(() => props.handleAuthentication(false));
+        }).catch((err) => {
+            setShowErrAlert(true);
+            setErrMsg(err.message);
+            props.handleAuthentication(false)
+        });
     }
 
     const postSignupReq = async (user) => {
@@ -77,10 +84,18 @@ export const SignUpPage = (props) => {
             body: JSON.stringify(user),
             mode: 'cors',
         });
-        console.log("RESPONSE IS ", response);
-        const data = await response.json();
-        sessionStorage.setItem('JWT_TOKEN', data.token);
-        return data.token;
+
+        if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem('JWT_TOKEN', data.token);
+            return data.token;
+        }
+        else if(response.status === 400){
+            throw new Error("Bad request was sent. Kindly verify your details again");
+        }
+        else {
+            throw new Error("There was an error.Please try again.");
+        }
     }
 
     const categoryOptions = props.categories ? props.categories.map((category) => <option key={category.categoryId} value={category.categoryId}>{category.category}</option>) : null;
@@ -113,13 +128,18 @@ export const SignUpPage = (props) => {
                             <Form.Control type="m" placeholder="Enter a description" onChange={handleDescChange} value={description} />
                         </Form.Group>
                         <Form.Group className='mb-3'>
-                        <Form.Label>What are your interests?</Form.Label>
+                            <Form.Label>What are your interests?</Form.Label>
                             <Form.Select multiple value={selectedCategoryIds} onChange={handleCategorySelectionChange}>
                                 ${categoryOptions}
                             </Form.Select>
                         </Form.Group>
+                        {showErrAlert && <Alert className='w-25 m-auto mb-3' variant="danger" onClose={() => setShowErrAlert(false)} dismissible>
+                            <p>
+                                {errMsg}
+                            </p>
+                        </Alert>}
                         <Row>
-                            <Button className='btn-signup' variant="primary" type="submit">
+                            <Button className='w-75 m-auto dark-bg light-txt-color btn-hover-dark' type="submit">
                                 Sign Up
                             </Button>
                         </Row>

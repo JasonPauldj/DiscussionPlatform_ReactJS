@@ -6,7 +6,7 @@ import Alert from "react-bootstrap/Alert";
 import { addCategory } from "../Utils";
 
 
-export const CategoryModal = ({ show, onHide }) => {
+export const CategoryModal = ({ show, onHide, handleSuccessfulCategoryAdd }) => {
     const [inputCategory, setInputCategory] = useState('');
     const [errMsg, setErrMsg] = useState(null);
     const [showErrAlert, setShowErrAlert] = useState(false);
@@ -16,7 +16,10 @@ export const CategoryModal = ({ show, onHide }) => {
     }
 
     const handleCategorySubmit = () => {
-        addCategory(inputCategory).then((category) => onHide()).catch(err => {
+        addCategory(inputCategory).then((category) => {
+            handleSuccessfulCategoryAdd(category);
+            onHide();
+        }).catch(err => {
             setShowErrAlert(true);
             setErrMsg(err.message);
         })
@@ -44,7 +47,7 @@ export const CategoryModal = ({ show, onHide }) => {
                 </p>
             </Alert>}
             <Modal.Footer>
-                <Button variant="success" onClick={handleCategorySubmit}>Submit</Button>
+                <Button variant="success" onClick={handleCategorySubmit} disabled={inputCategory.length === 0}>Submit</Button>
                 <Button variant="danger" onClick={onHide}>Close</Button>
             </Modal.Footer>
         </Modal>

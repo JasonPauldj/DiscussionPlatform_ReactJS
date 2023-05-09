@@ -3,6 +3,7 @@ import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
+import Alert from "react-bootstrap/Alert";
 import { useState, useEffect } from 'react';
 import './LoginPage.css';
 import { BACKEND_URL } from '../backendConfig';
@@ -13,12 +14,13 @@ function LoginPage(props) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isInputInvalid, setInputInvalid] = useState(false);
-
+    const [errMsg, setErrMsg] = useState(null);
+    const [showErrAlert, setShowErrAlert] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         if (props.isUserLoggedIn) {
-            navigate(props.redirectUrl ? props.redirectUrl : "/" );
+            navigate(props.redirectUrl ? props.redirectUrl : "/");
         }
     }, [props])
 
@@ -33,9 +35,17 @@ function LoginPage(props) {
 
             mode: 'cors',
         });
-        const data = await response.json();
-        sessionStorage.setItem('JWT_TOKEN', data.token);
-        return data.token;
+        if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem('JWT_TOKEN', data.token);
+            return data.token;
+        }
+        else if (response.status === 403) {
+            throw new Error("Invalid email/password");
+        }
+        else {
+            throw new Error("There was an error.Please try again.");
+        }
     }
 
     const handleEmailChange = (event) => {
@@ -65,7 +75,11 @@ function LoginPage(props) {
 
         //After login - I need to fetch the user
         postAuthenticationRequest(user).then(() => props.handleAuthentication(true)
-        ).catch(() => props.handleAuthentication(false));
+        ).catch((err) => {
+            setShowErrAlert(true);
+            setErrMsg(err.message);
+            props.handleAuthentication(false)
+        });
     }
 
     return (
@@ -83,24 +97,29 @@ function LoginPage(props) {
                             <Form.Label>Password</Form.Label>
                             <Form.Control type="password" placeholder="Password" onChange={handlePasswordChange} value={password} />
                         </Form.Group>
-                        <Row className='mb-2'>
-                            <Button className='btn-login' variant="primary" type="submit">
-                                Login
-                            </Button>
-                        </Row>
-                        <Row className='mb-2'>
-                            <Link to="/signup" className='link-signup p-0'>
-                                <Button className='btn-signup' variant="primary" type="submit">
-                                    Create Account
-                                </Button>
-                            </Link>
+                        {showErrAlert && <Alert className='w-25 m-auto mb-3' variant="danger" onClose={() => setShowErrAlert(false)} dismissible>
+                            <p>
+                                {errMsg}
+                            </p>
+                        </Alert>}
+                                <Row className='mb-2'>
+                                    <Button className='w-75 m-auto dark-bg light-txt-color btn-hover-dark'  type="submit">
+                                        Login
+                                    </Button>
+                                </Row>
+                                <Row className='mb-2'>
+                                    <Link to="/signup" className='link-signup p-0'>
+                                        <Button className='w-75 m-auto dark-bg light-txt-color btn-hover-dark' type="submit">
+                                            Create Account
+                                        </Button>
+                                    </Link>
 
-                        </Row>
-                    </Form>
-                </Card>
+                                </Row>
+                            </Form>
+                        </Card>
             </Row>
-        </Container>
-    );
+                </Container>
+                );
 }
 
-export default LoginPage;
+                export default LoginPage;

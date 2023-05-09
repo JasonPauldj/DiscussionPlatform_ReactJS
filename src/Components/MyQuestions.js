@@ -51,7 +51,6 @@ export const MyQuestions = ({ user, categories }) => {
             setShowDeleteQuestionModal(true);
 
         }
-        console.log("RENDEING QUESTION CARD");
         return (
             <Card className="my-1 shadow" onClick={handleQuestionSelection}>
                 <Card.Body >

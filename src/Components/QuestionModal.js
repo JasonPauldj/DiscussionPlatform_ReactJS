@@ -6,11 +6,13 @@ import Alert from "react-bootstrap/Alert";
 import { addQuestion } from "../Utils";
 
 
-export const QuestionModal = ({ show, onHide, categories, user }) => {
+
+export const QuestionModal = ({ show, onHide, categories, user, handleSuccessfulQAdd }) => {
     const [inputQuestion, setInputQuestion] = useState('');
     const [selectedCategoryId, setSelectedCategoryId] = useState(-1);
     const [errMsg, setErrMsg] = useState(null);
     const [showErrAlert, setShowErrAlert] = useState(false);
+
 
     const handleQuestionChange = (event) => {
         setInputQuestion(event.target.value);
@@ -21,7 +23,14 @@ export const QuestionModal = ({ show, onHide, categories, user }) => {
     }
 
     const handleQuestionSubmit = () => {
-        addQuestion(inputQuestion, user, selectedCategoryId).then((question) => onHide()).catch(err => {
+        addQuestion(inputQuestion, user, selectedCategoryId).then((question) => {
+            const nFeed = {
+                question: question,
+                answers :[]
+            };
+            handleSuccessfulQAdd(nFeed);
+            onHide()
+        }).catch(err => {
             setShowErrAlert(true);
             setErrMsg(err.message);
         })
@@ -58,7 +67,7 @@ export const QuestionModal = ({ show, onHide, categories, user }) => {
                 </p>
             </Alert>}
             <Modal.Footer>
-                <Button variant="success" onClick={handleQuestionSubmit}>Submit</Button>
+                <Button variant="success" onClick={handleQuestionSubmit} disabled={inputQuestion.length === 0}>Submit</Button>
                 <Button variant="danger" onClick={onHide}>Close</Button>
             </Modal.Footer>
         </Modal>

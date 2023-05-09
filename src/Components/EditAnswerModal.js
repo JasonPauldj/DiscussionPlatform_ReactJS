@@ -52,7 +52,7 @@ export const EditAnswerModal = ({ show, onHide, question,answer,onSuccessfulEdit
                 </p>
             </Alert>}
             <Modal.Footer>
-                <Button variant="success" onClick={handleAnswerSubmit}>Submit</Button>
+                <Button variant="success" onClick={handleAnswerSubmit} disabled={inputAnswer.length === 0}>Submit</Button>
                 <Button variant="danger" onClick={onHide}>Close</Button>
             </Modal.Footer>
         </Modal>

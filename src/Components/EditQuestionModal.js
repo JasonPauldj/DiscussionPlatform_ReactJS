@@ -60,7 +60,7 @@ export const EditQuestionModal = ({ show, onHide, categories, question, onSucces
                 </p>
             </Alert>}
             <Modal.Footer>
-                <Button variant="success" onClick={handleQuestionSubmit}>Submit</Button>
+                <Button variant="success" onClick={handleQuestionSubmit} disabled={inputQuestion.length === 0}>Submit</Button>
                 <Button variant="danger" onClick={onHide}>Close</Button>
             </Modal.Footer>
         </Modal>

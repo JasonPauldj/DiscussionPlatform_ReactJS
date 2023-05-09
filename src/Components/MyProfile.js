@@ -66,7 +66,7 @@ export const MyProfile = ({ user, handleProfileUpdate, categories }) => {
 
         updateUser(user.userId, updateUserObj).then(onSuccessfulEdit).catch(err => {
             setShowErrAlert(true);
-            setErrMsg(err);
+            setErrMsg(err.message);
         });
     }
 
@@ -115,7 +115,7 @@ export const MyProfile = ({ user, handleProfileUpdate, categories }) => {
                             <Toast.Body>Woohoo, you're profile has been updated!</Toast.Body>
                         </Toast></ToastContainer>}
                         <Row>
-                            <Button className='btn-signup' variant="primary" type="submit">
+                            <Button className='w-75 m-auto dark-bg light-txt-color btn-hover-dark' type="submit" disabled={firstName.length === 0 || lastName.length === 0 || email.length === 0}>
                                 Update Profile
                             </Button>
                         </Row>

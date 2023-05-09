@@ -13,6 +13,7 @@ import '../Background.scss';
 export const FeedPage = ({ isUserLoggedIn, setRedirectUrl, user, categories }) => {
     const [feed, setFeed] = useState(null);
     const [showQuestionModal, setShowQuestionModal] = useState(false);
+    const [showInfoAlert, setShowInfoAlert] = useState(false);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -30,7 +31,7 @@ export const FeedPage = ({ isUserLoggedIn, setRedirectUrl, user, categories }) =
                 setFeed(null)
             })
         }
-    }, [isUserLoggedIn])
+    }, [])
 
     let feedCards;
 
@@ -42,9 +43,13 @@ export const FeedPage = ({ isUserLoggedIn, setRedirectUrl, user, categories }) =
         setShowQuestionModal(true);
     }
 
+    const handleSuccessfulQAdd = (nF) => {
+        setFeed(prevFeed => [nF,...prevFeed])
+    }
+
     return (
         <>
-            {showQuestionModal && (<QuestionModal show={showQuestionModal} onHide={() => setShowQuestionModal(false)} categories={categories} user={user} />)}
+            {showQuestionModal && (<QuestionModal show={showQuestionModal} onHide={() => setShowQuestionModal(false)} categories={categories} user={user} handleSuccessfulQAdd={handleSuccessfulQAdd} />)}
             <Container >
                 <Row>
                     <Button className="w-auto mx-auto my-2 card-bg btn-dark-text my-5 light-bg btn-hover-light"  onClick={handleNewQuestionClick}> Add a New Question</Button>
