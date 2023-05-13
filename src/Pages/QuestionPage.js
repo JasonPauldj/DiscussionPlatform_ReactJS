@@ -1,18 +1,22 @@
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import QuestionCard from "../Components/QuestionCard";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { fetchQuestionAnswers } from "../Utils";
 import AnswerCard from "../Components/AnswerCard";
 import { AnswerModal } from "../Components/AnswerModal";
+import { useSelector } from "react-redux";
 
-export const QuestionPage = ({ user, setRedirectUrl }) => {
+
+export const QuestionPage = () => {
+
+    const user = useSelector((state) => state.user.user);
+
     const [qAns, setQAns] = useState(null);
     const [showAnswerModal, setShowAnswerModal] = useState(false);
     const params = useParams();
-    const navigate = useNavigate();
-    const location = useLocation();
+
 
     useEffect(() => {
         if (user) {
@@ -22,11 +26,7 @@ export const QuestionPage = ({ user, setRedirectUrl }) => {
                 console.log("There was an error while fetching the question ", err);
             })
         }
-        else {
-            setRedirectUrl(location.pathname);
-            navigate("/login");
-        }
-    }, []);
+    }, [user]);
 
     let answerCards;
 

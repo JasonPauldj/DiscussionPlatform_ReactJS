@@ -6,11 +6,15 @@ import { IconButton } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditAnswerModal from "./EditAnswerModal";
 import DeleteAnswerModal from "./DeleteAnswerModal";
+import { useSelector } from "react-redux";
 
 
 
 
-export const MyAnswers = ({ user }) => {
+export const MyAnswers = () => {
+
+    const user = useSelector((state)=> state.user.user);
+
     const [myAns, setMyAns] = useState([]);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [showEditAnswerModal, setShowEditAnswerModal] = useState(false);

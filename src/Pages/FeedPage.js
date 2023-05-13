@@ -1,29 +1,23 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import FeedCard from "../Components/FeedCard";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
-import { fetchFeed } from '../Utils';
+import { fetchFeed} from '../Utils';
 import QuestionModal from '../Components/QuestionModal';
 import '../Background.scss';
+import { useSelector } from "react-redux";
 
+export const FeedPage = () => {
 
+    const user = useSelector((state) => state.user.user);
+    const categories = useSelector((state) => state.categories.categories);
 
-export const FeedPage = ({ isUserLoggedIn, setRedirectUrl, user, categories }) => {
     const [feed, setFeed] = useState(null);
-    const [showQuestionModal, setShowQuestionModal] = useState(false);
-    const [showInfoAlert, setShowInfoAlert] = useState(false);
-
-    const navigate = useNavigate();
-    const location = useLocation();
-
+    const [showQuestionModal, setShowQuestionModal] = useState(false);    
+    
     useEffect(() => {
-        if (!isUserLoggedIn) {
-            setRedirectUrl(location.pathname);
-            navigate("/login");
-        }
-        else {
+       if(user){
             fetchFeed().then((feedItems) => {
                 setFeed(feedItems);
             }).catch((err) => {
@@ -31,7 +25,7 @@ export const FeedPage = ({ isUserLoggedIn, setRedirectUrl, user, categories }) =
                 setFeed(null)
             })
         }
-    }, [])
+    }, [user])
 
     let feedCards;
 

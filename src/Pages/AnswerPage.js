@@ -1,18 +1,21 @@
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import AnswerMainCard from "../Components/AnswerMainCard";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { fetchAnswerComments } from "../Utils";
 import CommentCard from "../Components/CommentCard";
 import { CommentModal } from "../Components/CommentModal";
+import { useSelector } from "react-redux";
 
-export const AnswerPage = ({ user, setRedirectUrl }) => {
+
+export const AnswerPage = () => {
+
+    const user = useSelector((state) => state.user.user);
+
     const [aComms, setAComms] = useState(null);
     const [showCommentModal, setShowCommentModal] = useState(false);
     const params = useParams();
-    const location = useLocation();
-    const navigate = useNavigate();
 
     useEffect(() => {
         if (user) {
@@ -22,11 +25,7 @@ export const AnswerPage = ({ user, setRedirectUrl }) => {
                 console.log("There was an error while fetching the question ", err);
             })
         }
-        else {
-            setRedirectUrl(location.pathname);
-            navigate("/login");
-        }
-    }, [params.answerId]);
+    }, [params.answerId,user]);
 
     let commentCards;
 

@@ -327,3 +327,26 @@ export const addCategory = async (category) => {
     throw new Error("An error occured when trying to POST a CATEGORY.");
   }
 }
+
+export const postAuthenticationRequest = async (user) => {
+  const response = await fetch(`${BACKEND_URL}/auth/authenticate`, {
+      method: 'POST',
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify(user),
+
+      mode: 'cors',
+  });
+  if (response.ok) {
+      const data = await response.json();
+      sessionStorage.setItem('JWT_TOKEN', data.token);
+      return data.token;
+  }
+  else if (response.status === 403) {
+      throw new Error("Invalid email/password");
+  }
+  else {
+      throw new Error("There was an error.Please try again.");
+  }
+}

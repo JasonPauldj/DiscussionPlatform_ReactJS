@@ -10,7 +10,7 @@ export const FeedCard = ({ question, answers }) => {
     const navigate = useNavigate();
 
     const handleCardSelection = (event) => {
-        navigate(`question/${question.questionId}`)
+        navigate(`/question/${question.questionId}`)
     }
 
     return (

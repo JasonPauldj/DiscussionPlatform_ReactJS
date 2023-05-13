@@ -7,7 +7,8 @@ import MyProfile from './MyProfile';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 
-export const ProfileTabs = ({ user, categories, handleProfileUpdate }) => {
+export const ProfileTabs = () => {
+
   const [key, setKey] = useState('questions');
 
   return (
@@ -19,13 +20,13 @@ export const ProfileTabs = ({ user, categories, handleProfileUpdate }) => {
           className="mb-3 profile-tabs"
         >
           <Tab eventKey="questions" title="My Questions">
-            <MyQuestions user={user} categories={categories} />
+            <MyQuestions />
           </Tab>
           <Tab eventKey="answers" title="My Answers">
-            <MyAnswers user={user} />
+            <MyAnswers />
           </Tab>
           <Tab eventKey="updateprofile" title="Update Profile">
-            <MyProfile user={user} handleProfileUpdate={handleProfileUpdate} categories={categories} />
+            <MyProfile />
           </Tab>
         </Tabs>
       </Row>

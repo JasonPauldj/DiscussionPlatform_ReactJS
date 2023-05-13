@@ -7,9 +7,18 @@ import Alert from "react-bootstrap/Alert";
 import { useState, useEffect } from 'react';
 import { BACKEND_URL } from '../backendConfig';
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchUserBasedOnJWT } from '../Utils';
+import { login } from '../features/user/userSlice';
 import './SignUpPage.css';
 
-export const SignUpPage = (props) => {
+export const SignUpPage = () => {
+    console.log("RENDERING SIGN UP PAGE");
+    const categories = useSelector((state) => state.categories.categories);
+    const user = useSelector((state) => state.user.user);
+
+    const dispatch = useDispatch();
+
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -23,10 +32,10 @@ export const SignUpPage = (props) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (props.isUserLoggedIn) {
-            navigate("/");
+        if (user) {
+            navigate("/feed");
         }
-    }, [props]);
+    }, [user]);
 
     const handleFirstNameChange = (event) => {
         setFirstName(event.target.value);
@@ -66,12 +75,14 @@ export const SignUpPage = (props) => {
             interests
         };
 
-        postSignupReq(newUserObj).then(() => {
-            props.handleAuthentication(true)
+        postSignupReq(newUserObj).then((jwt_token) => fetchUserBasedOnJWT(jwt_token)).then((user) => {
+            dispatch(login({
+                user
+            }));
+            navigate("/feed");
         }).catch((err) => {
             setShowErrAlert(true);
             setErrMsg(err.message);
-            props.handleAuthentication(false)
         });
     }
 
@@ -90,7 +101,7 @@ export const SignUpPage = (props) => {
             sessionStorage.setItem('JWT_TOKEN', data.token);
             return data.token;
         }
-        else if(response.status === 400){
+        else if (response.status === 400) {
             throw new Error("Bad request was sent. Kindly verify your details again");
         }
         else {
@@ -98,7 +109,7 @@ export const SignUpPage = (props) => {
         }
     }
 
-    const categoryOptions = props.categories ? props.categories.map((category) => <option key={category.categoryId} value={category.categoryId}>{category.category}</option>) : null;
+    const categoryOptions = categories ? categories.map((category) => <option key={category.categoryId} value={category.categoryId}>{category.category}</option>) : null;
 
     return (
         <Container>

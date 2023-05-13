@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { updateUser } from "../Utils";
+import { updateUser, fetchUserBasedOnJWT, fetchJWT } from "../Utils";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
@@ -8,9 +8,36 @@ import Card from 'react-bootstrap/Card';
 import Alert from 'react-bootstrap/Alert';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from "react-bootstrap/ToastContainer";
+import { update } from "../features/user/userSlice";
+import { useDispatch, useSelector } from "react-redux";
 
+export const profileUpdateAction = async ({request}) => {
+    let formData = await request.formData();
 
-export const MyProfile = ({ user, handleProfileUpdate, categories }) => {
+    let firstName = formData.get('firstName');
+    let lastName = formData.get('lastName');
+    let email = formData.get('email');
+    let description = formData.get('description');
+    let interests = formData.getAll('categories').map(id => ({categoryId : id}));
+    
+    let user ={
+        firstName,
+        lastName,
+        email,
+        description,
+        interests
+    }
+    let oldUser = await fetchUserBasedOnJWT(fetchJWT());
+    let updatedUser = await updateUser(oldUser.userId, user)
+
+    return updatedUser;
+}
+
+export const MyProfile = () => {
+    
+    const user = useSelector((state) => state.user.user);
+    const categories = useSelector((state) => state.categories.categories);
+    
     const [firstName, setFirstName] = useState(user ? user.firstName : '');
     const [lastName, setLastName] = useState(user ? user.lastName : '');
     const [email, setEmail] = useState(user ? user.email : '');
@@ -21,11 +48,8 @@ export const MyProfile = ({ user, handleProfileUpdate, categories }) => {
     const [showInfoAlert, setShowInfoAlert] = useState(false);
     const [errMsg, setErrMsg] = useState(null);
 
+    const dispatch = useDispatch();
 
-    const onSuccessfulEdit = (user) => {
-        handleProfileUpdate(user);
-        setShowInfoAlert(true);
-    }
 
     const handleFirstNameChange = (event) => {
         setFirstName(event.target.value);
@@ -64,7 +88,10 @@ export const MyProfile = ({ user, handleProfileUpdate, categories }) => {
             interests
         };
 
-        updateUser(user.userId, updateUserObj).then(onSuccessfulEdit).catch(err => {
+        updateUser(user.userId, updateUserObj).then((user) => {
+            dispatch(update(user));
+            setShowInfoAlert(true);
+        }).catch(err => {
             setShowErrAlert(true);
             setErrMsg(err.message);
         });
@@ -80,15 +107,15 @@ export const MyProfile = ({ user, handleProfileUpdate, categories }) => {
                     <Form className='signup-form p-3' onSubmit={handleUpdateSubmit}>
                         <Form.Group className="mb-3" controlId="firstName">
                             <Form.Label>First Name</Form.Label>
-                            <Form.Control type="text" placeholder="Enter First Name" onChange={handleFirstNameChange} value={firstName} />
+                            <Form.Control type="text" placeholder="Enter First Name" onChange={handleFirstNameChange} value={firstName} name="firstName"/>
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="lastName">
                             <Form.Label>Last Name</Form.Label>
-                            <Form.Control type="text" placeholder="Enter Last Name" onChange={handleLastNameChange} value={lastName} />
+                            <Form.Control type="text" placeholder="Enter Last Name" onChange={handleLastNameChange} value={lastName} name="lastName" />
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="formBasicEmail">
                             <Form.Label>Email address</Form.Label>
-                            <Form.Control type="email" placeholder="Enter email" onChange={handleEmailChange} value={email} />
+                            <Form.Control type="email" placeholder="Enter email" onChange={handleEmailChange} value={email} name="email" />
                         </Form.Group>
                         {/* <Form.Group className="mb-3" controlId="formBasicPassword">
                             <Form.Label>Password</Form.Label>
@@ -97,11 +124,11 @@ export const MyProfile = ({ user, handleProfileUpdate, categories }) => {
 
                         <Form.Group className="mb-3" controlId="description">
                             <Form.Label>Desribe yourself</Form.Label>
-                            <Form.Control type="m" placeholder="Enter a description" onChange={handleDescChange} value={description} />
+                            <Form.Control type="m" placeholder="Enter a description" onChange={handleDescChange} value={description} name="description" />
                         </Form.Group>
                         <Form.Group className='mb-3'>
                             <Form.Label>What are your interests?</Form.Label>
-                            <Form.Select multiple value={selectedCategoryIds} onChange={handleCategorySelectionChange}>
+                            <Form.Select multiple value={selectedCategoryIds} onChange={handleCategorySelectionChange} name="categories">
                                 ${categoryOptions}
                             </Form.Select>
                         </Form.Group>

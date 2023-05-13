@@ -4,145 +4,81 @@ import { Button, Container } from 'react-bootstrap';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from 'react';
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
-import LoginPage from './Pages/LoginPage';
-import FeedPage from './Pages/FeedPage';
-import { fetchUserBasedOnJWT, fetchJWT, removeJWT, fetchCategories } from './Utils';
-import SignUpPage from './Pages/SignUpPage';
-import QuestionPage from './Pages/QuestionPage';
-import AnswerPage from './Pages/AnswerPage';
-import ProfilePage from './Pages/ProfilePage';
+import { Link, useNavigate, Outlet } from "react-router-dom";
+import { fetchUserBasedOnJWT, fetchJWT, removeJWT } from './Utils';
 import CategoryModal from './Components/CategoryModal';
+import { useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux';
+import { addCategory, fetchCategory } from './features/categories/categorySlice';
+import { login, logout } from './features/user/userSlice';
 import './Background.scss';
 
-
 function App() {
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
-  const [isUserAdmin, setIsUserAdmin] = useState(false);
-  const [loggedInUser, setLoggedInUser] = useState(null);
-  const [categories, setCategories] = useState(null);
-  const [redirectUrl, setRedirectUrl] = useState(null);
+  console.log("RENDERING APP COMPONENT");
 
-  //feed page
-  // const [feed, setFeed] = useState(null);
+  const user = useSelector((state) => state.user.user);
 
-  //questionModal
-  // const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(user ? true : false);
+  const [isUserAdmin, setIsUserAdmin] = useState(user && user.role === 'ADMIN' ? true : false);
+  const [loggedInUser, setLoggedInUser] = useState(user);
 
   const [showNewCategoryModal, setShowCategoryModal] = useState(false);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
 
-  /**
-   * User opens the app. Do we already have the userLoggedIn
-   * 
-   */
+  const navigateToLoginOrSignUp = () => {
+    if (location.pathname === "/signup") {
+      navigate(location.pathname);
+    }
+    else {
+      navigate("/login");
+    }
+  }
+
   useEffect(() => {
     const jwt_token = fetchJWT();
 
-    const getCategories = async () => {
-      try {
-        const categories = await fetchCategories();
-        setCategories(categories)
+    if (jwt_token) {
+      let getLoggedInUserAndCategories = async () => {
+        let loggedInUser = await fetchUserBasedOnJWT(jwt_token);
+        dispatch(login(loggedInUser));
       }
-      catch (err) {
-        console.log("Err ", err);
-      }
-    }
 
-    getCategories().then(() => {
-      //if jwtExists in sessionStore then we have to try to fetch the user
-      if (jwt_token) {
-        fetchUserBasedOnJWT(jwt_token).then((user) => {
-          setLoggedInUser(user);
-          setIsUserLoggedIn(true);
-          if (user.role === 'ADMIN') {
-            setIsUserAdmin(true);
-          }
-        }).catch(() => {
-          setIsUserLoggedIn(false);
-          setLoggedInUser(null);
-          setIsUserAdmin(false);
-          setRedirectUrl(null);
-          removeJWT();
-        });
-      }
-      else {
-        console.log("DIDN'T FIND JWT TOKEN");
-        setIsUserLoggedIn(false);
-        setLoggedInUser(null);
-        setRedirectUrl(null);
-        setIsUserAdmin(false);
-      }
-    })
-
-  }, []);
-
-  //fetch the categories for the application
-  // useEffect(() => {
-  //   fetchCategories().then((fetchedCategories) => {
-  //     setCategories(fetchedCategories);
-  //   }).catch((err) => {
-  //     console.log(err);
-  //   })
-  // }, []);
-
-  //if User is logged in - fetch relevant feed
-  // useEffect(() => {
-  //   if (loggedInUser) {
-  //     fetchFeed().then((feedItems) => {
-  //       setFeed(feedItems);
-  //     }).catch((err) => {
-  //       console.log("There is an err in Fetching Feed " + err);
-  //       setFeed(null)
-  //     })
-  //   }
-  // else {
-  //   navigate("/login");
-  // }
-
-  // }, [loggedInUser])
-
-  const handleAuthentication = (isSuccesfulLogin) => {
-    if (isSuccesfulLogin) {
-      fetchUserBasedOnJWT(fetchJWT()).then((user) => {
-        setLoggedInUser(user);
-        setIsUserLoggedIn(true);
-        if (user.role === 'ADMIN') {
-          setIsUserAdmin(true);
-        }
-      }).catch(() => {
-        setIsUserLoggedIn(false);
-        setLoggedInUser(null);
-        setRedirectUrl(null);
-        setIsUserAdmin(false);
+      getLoggedInUserAndCategories().catch(() => {
+        removeJWT();
+        navigateToLoginOrSignUp();
       });
     }
     else {
-      setIsUserLoggedIn(false);
-      setLoggedInUser(null);
-      setRedirectUrl(null);
-      setIsUserAdmin(false);
+      navigateToLoginOrSignUp();
+    }
+  }, [])
+
+  useEffect(() => {
+    if (user) {
+      setLoggedInUser(user);
+      setIsUserLoggedIn(user ? true : false);
+      setIsUserAdmin(user && user.role === 'ADMIN' ? true : false);
+
+      dispatch(fetchCategory());
     }
 
-  }
+  }, [user]);
 
   const handleLogoutBtn = (event) => {
     removeJWT();
     setIsUserLoggedIn(false);
     setLoggedInUser(null);
-    setRedirectUrl(null);
     setIsUserAdmin(false);
+    dispatch(logout())
     navigate("/login");
   }
 
 
-  const handleMyProfileClick = (event) => {
+  const handleMyProfileClick = () => {
     navigate("/profile");
-  }
-
-  const handleProfileUpdate = (user) => {
-    setLoggedInUser(user);
   }
 
   const handleNewCategoryClick = () => {
@@ -150,7 +86,8 @@ function App() {
   }
 
   const handleSuccessfulCategoryAdd = (nC) => {
-    setCategories(prevCategories => [...prevCategories, nC])
+    // setCategories(prevCategories => [...prevCategories, nC])
+    dispatch(addCategory(nC));
   }
 
   return (
@@ -158,7 +95,7 @@ function App() {
       {showNewCategoryModal && (<CategoryModal show={showNewCategoryModal} onHide={() => setShowCategoryModal(false)} handleSuccessfulCategoryAdd={handleSuccessfulCategoryAdd} />)}
       <Navbar className='light-bg' expand="lg">
         <Container>
-          <Link className='text-decoration-none fw-bolder dark-txt-color fs-2 me-2' to={'/'}>Forum</Link>
+          <Link className='text-decoration-none fw-bolder dark-txt-color fs-2 me-2' to={'/feed'}>Forum</Link>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="my-nav">
@@ -166,7 +103,7 @@ function App() {
                 {(isUserLoggedIn) && <Button className='dark-txt-color light-bg btn-hover-light me-1' onClick={handleMyProfileClick}> My Profile</Button>}
                 {(isUserLoggedIn && isUserAdmin) && <Button className='dark-txt-color light-bg btn-hover-light' onClick={handleNewCategoryClick}> New Category</Button>}
               </div>
-               <div className='flex-grow-1 text-center dark-txt-color fs-4'>Welcome to Forum {(isUserLoggedIn) && `~ ${loggedInUser.firstName} ${loggedInUser.lastName}`}</div>
+              <div className='flex-grow-1 text-center dark-txt-color fs-4'>Welcome to Forum {(isUserLoggedIn) && `~ ${loggedInUser.firstName} ${loggedInUser.lastName}`}</div>
               <div className='d-flex justify-content-end'>
                 {isUserLoggedIn && <Button className='dark-txt-color light-bg btn-hover-light ' onClick={handleLogoutBtn}>LOGOUT</Button>}
               </div>
@@ -174,27 +111,30 @@ function App() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <Routes>
-        <Route exact path={"/"} element={
+      <div>
+        <Outlet />
+      </div>
+      {/* <Routes> */}
+      {/* <Route exact path={"/"} element={
           <FeedPage isUserLoggedIn={isUserLoggedIn} user={loggedInUser} setRedirectUrl={setRedirectUrl} categories={categories}
           />
-        } />
-        <Route exact path={"/login"} element={
+        } /> */}
+      {/* <Route exact path={"/login"} element={
           <LoginPage handleAuthentication={handleAuthentication} isUserLoggedIn={isUserLoggedIn} redirectUrl={redirectUrl} />
-        } />
-        <Route exact path={"/signup"} element={
+        } /> */}
+      {/* <Route exact path={"/signup"} element={
           <SignUpPage handleAuthentication={handleAuthentication} isUserLoggedIn={isUserLoggedIn} categories={categories} />
-        } />
-        <Route exact path={"/question/:questionId"} element={
+        } /> */}
+      {/* <Route exact path={"/question/:questionId"} element={
           <QuestionPage user={loggedInUser} setRedirectUrl={setRedirectUrl} />
-        } />
-        <Route exact path={"/answer/:answerId"} element={
+        } /> */}
+      {/* <Route exact path={"/answer/:answerId"} element={
           <AnswerPage user={loggedInUser} setRedirectUrl={setRedirectUrl} />
-        } />
-        <Route exact path={"/profile"} element={
+        } /> */}
+      {/* <Route exact path={"/profile"} element={
           <ProfilePage user={loggedInUser} categories={categories} handleProfileUpdate={handleProfileUpdate} isUserLoggedIn={isUserLoggedIn} setRedirectUrl={setRedirectUrl} />
-        } />
-      </Routes>
+        } /> */}
+      {/* </Routes> */}
     </div>
   );
 }

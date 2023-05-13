@@ -7,8 +7,13 @@ import EditQuestionModal from "./EditQuestionModal";
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from "react-router-dom";
 import DeleteQuestionModal from "./DeleteQuestionModal";
+import { useSelector } from "react-redux";
 
-export const MyQuestions = ({ user, categories }) => {
+export const MyQuestions = () => {
+
+    const user = useSelector((state) => state.user.user);
+    const categories = useSelector((state) => state.categories.categories);
+
     const [myQues, setMyQues] = useState([]);
     const [selectedQuestion, setSelectedQuestion] = useState(null);
     const [showEditQuestionModal, setShowEditQuestionModal] = useState(false);
