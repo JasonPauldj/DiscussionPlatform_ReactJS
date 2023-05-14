@@ -38,6 +38,7 @@ function App() {
   }
 
   useEffect(() => {
+    dispatch(fetchCategory());
     const jwt_token = fetchJWT();
 
     if (jwt_token) {
@@ -61,8 +62,6 @@ function App() {
       setLoggedInUser(user);
       setIsUserLoggedIn(user ? true : false);
       setIsUserAdmin(user && user.role === 'ADMIN' ? true : false);
-
-      dispatch(fetchCategory());
     }
 
   }, [user]);
@@ -95,7 +94,7 @@ function App() {
       {showNewCategoryModal && (<CategoryModal show={showNewCategoryModal} onHide={() => setShowCategoryModal(false)} handleSuccessfulCategoryAdd={handleSuccessfulCategoryAdd} />)}
       <Navbar className='light-bg' expand="lg">
         <Container>
-          <Link className='text-decoration-none fw-bolder dark-txt-color fs-2 me-2' to={'/feed'}>Forum</Link>
+          <Link className='text-decoration-none fw-bolder dark-txt-color fs-2 me-2' to={user ? '/feed' : '/login'}>Forum</Link>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="my-nav">
